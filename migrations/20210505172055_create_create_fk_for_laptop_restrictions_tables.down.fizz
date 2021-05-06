@@ -1,0 +1,3 @@
+drop_foreign_key("laptop_restrictions", "laptop_restrictions_laptops_id_fk", {})
+drop_foreign_key("laptop_restrictions", "laptop_restrictions_restrictions_id_fk", {})
+drop_foreign_key("laptop_restrictions", "laptop_restrictions_reservations_id_fk", {})

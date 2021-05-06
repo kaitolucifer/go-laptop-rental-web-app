@@ -1,0 +1,3 @@
+add_index("laptop_restrictions", ["start_date", "end_date"], {})
+add_index("laptop_restrictions", "laptop_id", {})
+add_index("laptop_restrictions", "reservation_id", {})

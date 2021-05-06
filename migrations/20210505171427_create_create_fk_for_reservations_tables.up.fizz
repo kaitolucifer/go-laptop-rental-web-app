@@ -1,0 +1,4 @@
+add_foreign_key("reservations", "laptop_id", {"laptops": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})

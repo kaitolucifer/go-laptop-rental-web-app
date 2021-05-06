@@ -1,0 +1,222 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/css/datepicker-bs4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/notie/dist/notie.min.css">
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
+    {{block "css" .}}
+
+    {{end}}
+    <title>Laptop Rental Service</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <div class="navbar-brand inactive-link">Laptop Rental Service</div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Laptop Types
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/alienware">Alienware</a></li>
+                            <li><a class="dropdown-item" href="/macbook">Macbook</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search-availability" tabindex="-1" aria-disabled="true">Rent Now</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact" tabindex="-1" aria-disabled="true">Contact</a>
+                    </li>
+                </ul>
+          </div>
+        </div>
+      </nav>
+      {{block "content" .}}
+
+      {{end}}
+      <div class="row my-footer bg-dark">
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <p class="text-muted text-center h6">
+            Copyright© Kaito 2021
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/js/datepicker-full.min.js"></script>
+    <script src="https://unpkg.com/notie"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    {{block "js" .}}
+
+    {{end}}
+    <script>
+        let attention = Prompt();
+
+        // notie
+        function notify(msgType, msg) {
+            notie.alert({
+                type: msgType,
+                text: msg,
+                position: 'top'
+            });
+        }
+
+        // {{with .Error}}
+        notify("error", "{{.}}")
+        // {{end}}
+
+        // {{with .Flash}}
+        notify("flash", "{{.}}")
+        // {{end}}
+
+        // {{with .Warning}}
+        notify("warning", "{{.}}")
+        // {{end}}
+
+        // sweatalert2
+        function notifyModal(title, text, icon, confirmButtonText) {
+            Swal.fire({
+                title: title,
+                html: text,
+                icon, icon,
+                confirmBUttonText: confirmButtonText,
+            })
+        }
+
+        function Prompt() {
+            let toast = function(c) {
+                const {
+                    msg = "",
+                    icon = "success",
+                    position = "top-end"
+                } = c;
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    icon: icon,
+                    title: msg,
+                    position: position,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+
+                Toast.fire({});
+            }
+
+            let success = function(c) {
+                const {
+                    msg = "",
+                    title = "",
+                    footer = "",
+                } = c;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: title,
+                    text: msg,
+                    footer: footer
+                });
+            }
+
+            let error = function(c) {
+                const {
+                    msg = "",
+                    title = "",
+                    footer = "",
+                } = c;
+
+                Swal.fire({
+                    icon: 'error',
+                    title: title,
+                    text: msg,
+                    footer: footer
+                });
+            }
+
+            async function custom(c) {
+                const {
+                    msg = "",
+                    title = "",
+                } = c;
+
+                const { value: result } = await Swal.fire({
+                    title: title,
+                    html: msg,
+                    backdrop: false,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    willOpen: () => {
+                        if (c.willOpen !== undefined) {
+                            c.willOpen();
+                        }
+                    },
+                    didOpen: () => {
+                        if (c.didOpen !== undefined) {
+                            c.didOpen();
+                        }
+                    },
+                    preConfirm: () => {
+                        if (c.preConfirm !== undefined) {
+                            c.preConfirm();
+                        }
+                    },
+                });
+
+                if (result) {
+                    if (result.dismiss !== Swal.DismissReason.cancle) {
+                        if (result.value !== "") {
+                            if (c.callback !== undefined) {
+                                c.callback(result);
+                            }
+                        } else {
+                            c.callback(false);
+                        }
+                    } else {
+                        c.callback(false)
+                    }
+                }
+            }
+
+            return {
+                toast: toast,
+                success: success,
+                error, error,
+                custom: custom,
+            }
+        }
+        
+        function isValidDate(dateString) {
+            const regEx = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateString.match(regEx)) return false;
+            return true;
+        }
+    </script>
+</body>
+</html>
+{{end}}

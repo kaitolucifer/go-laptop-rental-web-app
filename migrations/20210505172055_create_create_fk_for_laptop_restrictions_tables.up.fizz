@@ -1,0 +1,14 @@
+add_foreign_key("laptop_restrictions", "laptop_id", {"laptops": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})
+
+add_foreign_key("laptop_restrictions", "restriction_id", {"restrictions": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})
+
+add_foreign_key("laptop_restrictions", "reservation_id", {"reservations": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})
