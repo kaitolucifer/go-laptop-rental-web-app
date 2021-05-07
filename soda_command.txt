@@ -1,8 +1,0 @@
-# generate fizz files
-soda generate fizz {somename}
-# do db migrate (create some table)
-soda migrate
-# do db migrate down (drop some table)
-soda migrate down
-# completely recreate db
-soda reset
