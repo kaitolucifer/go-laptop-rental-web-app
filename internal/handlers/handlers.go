@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/config"
+	"github.com/kaitolucifer/go-laptop-rental-site/internal/database"
+	"github.com/kaitolucifer/go-laptop-rental-site/internal/driver"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/forms"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/helpers"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/models"
@@ -18,12 +22,14 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
+	DB  database.Database
 }
 
 // NewRepo creates a new repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  database.NewPostgres(db.SQL, a),
 	}
 }
 
@@ -34,59 +40,118 @@ func NewHandlers(r *Repository) {
 
 // Home renders home page
 func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "home.page.html", &models.TemplateData{})
+	render.Template(w, r, "home.page.html", &models.TemplateData{})
 }
 
 // About renders about page
 func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "about.page.html", &models.TemplateData{})
+	render.Template(w, r, "about.page.html", &models.TemplateData{})
 }
 
 // Contact renders the contact page
 func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "contact.page.html", &models.TemplateData{})
+	render.Template(w, r, "contact.page.html", &models.TemplateData{})
 }
 
 // MakeReservation renders the make a reservation page and displays form
 func (repo *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
-	var emptyReservtion models.Reservation
+	res, ok := repo.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		repo.App.ErrorLog.Println("cannot get item from session")
+		repo.App.Session.Put(r.Context(), "error", "Can't get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	laptop, err := repo.DB.GetLaptopByID(res.LaptopID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	res.Laptop.LaptopName = laptop.LaptopName
+
+	repo.App.Session.Put(r.Context(), "reservation", res)
+
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = res.StartDate.Format("2006-01-02")
+	stringMap["end_date"] = res.EndDate.Format("2006-01-02")
+
 	data := make(map[string]interface{})
-	data["reservation"] = emptyReservtion
-	render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{
-		Form: forms.New(nil),
-		Data: data,
+	data["reservation"] = res
+	render.Template(w, r, "make-reservation.page.html", &models.TemplateData{
+		Form:      forms.New(nil),
+		Data:      data,
+		StringMap: stringMap,
 	})
 }
 
 // PostMakeReservation handles the posting of a reservation form
 func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Request) {
+	reservation, ok := repo.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		repo.App.ErrorLog.Println("cannot get item from session")
+		repo.App.Session.Put(r.Context(), "error", "Can't get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 
-	reservation := models.Reservation{
-		FirstName: r.Form.Get("first_name"),
-		LastName:  r.Form.Get("last_name"),
-		Email:     r.Form.Get("email"),
-		Phone:     r.Form.Get("phone"),
-	}
-
 	form := forms.New(r.PostForm)
 
-	form.Required("first_name", "last_name", "email")
+	form.Required("first_name", "last_name", "email", "start_date", "end_date")
 	form.IsAboveMinLength("first_name", 3)
 	form.IsEmail("email")
+	form.ValidateDate("start_date")
+	form.ValidateDate("end_date")
+	form.EndDateGreaterThanStartDate("start_date", "end_date")
+
+	startDate, _ := form.GetTimeObj("start_date")
+	endDate, _ := form.GetTimeObj("end_date")
+
+	laptopID, err := strconv.Atoi(r.Form.Get("laptop_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	reservation.FirstName = r.Form.Get("first_name")
+	reservation.LastName = r.Form.Get("last_name")
+	reservation.Email = r.Form.Get("email")
+	reservation.Phone = r.Form.Get("phone")
 
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
-		render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{
+		render.Template(w, r, "make-reservation.page.html", &models.TemplateData{
 			Form: form,
 			Data: data,
 		})
+		return
+	}
+
+	newReservationID, err := repo.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	restriction := models.LaptopRestrictions{
+		StartDate:     startDate,
+		EndDate:       endDate,
+		LaptopID:      laptopID,
+		ReservationID: newReservationID,
+		RestrictionID: 1,
+	}
+	err = repo.DB.InsertLaptopRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -96,38 +161,122 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 
 // Alienware renders the Alienware laptop page
 func (repo *Repository) Alienware(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "alienware.page.html", &models.TemplateData{})
+	render.Template(w, r, "alienware.page.html", &models.TemplateData{})
 }
 
 // Macbook renders the Macbook laptop page
 func (repo *Repository) Macbook(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "macbook.page.html", &models.TemplateData{})
+	render.Template(w, r, "macbook.page.html", &models.TemplateData{})
 }
 
 // SearchAvailability renders the search availalibity page
 func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "search-availability.page.html", &models.TemplateData{})
+	render.Template(w, r, "search-availability.page.html", &models.TemplateData{})
 }
 
 // PostSearchAvailability handles request for availability
 func (repo *Repository) PostSearchAvailability(w http.ResponseWriter, r *http.Request) {
-	start := r.Form.Get("start")
-	end := r.Form.Get("end")
-	w.Write([]byte(fmt.Sprintf("start date is %s and end date is %s", start, end)))
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+
+	startDate, err := form.GetTimeObj("start_date")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := form.GetTimeObj("end_date")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	laptops, err := repo.DB.SearchAvailabilityForAllLaptops(startDate, endDate)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	if len(laptops) == 0 {
+		repo.App.Session.Put(r.Context(), "error", "No availability")
+		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["laptops"] = laptops
+
+	res := models.Reservation{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	repo.App.Session.Put(r.Context(), "reservation", res)
+
+	render.Template(w, r, "choose-laptop.page.html", &models.TemplateData{
+		Data: data,
+	})
 }
 
 // jsonResponse defines the schema of JSON repsonse sent by AvailabilityModal handler
 type jsonResponse struct {
-	OK      bool   `json:"ok"`
-	Message string `json:"message"`
+	OK        bool   `json:"ok"`
+	Message   string `json:"message"`
+	LaptopID  string `json:"laptop_id"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
 }
 
 // SearchAvailabilityModal handles request for availability on modal window and send JSON response
 func (repo *Repository) SearchAvailabilityModal(w http.ResponseWriter, r *http.Request) {
-	resp := jsonResponse{
-		OK:      true,
-		Message: "Available!",
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
 	}
+
+	form := forms.New(r.PostForm)
+
+	form.Required("start_date", "end_date")
+	form.ValidateDate("start_date")
+	form.ValidateDate("end_date")
+	form.EndDateGreaterThanStartDate("start_date", "end_date")
+
+	startDate, err := form.GetTimeObj("start_date")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := form.GetTimeObj("end_date")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	laptopID, err := strconv.Atoi(r.Form.Get("laptop_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	available, err := repo.DB.SearchAvailabilityByDatesByLaptopID(startDate, endDate, laptopID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	resp := jsonResponse{
+		OK:        available,
+		Message:   "Available!",
+		StartDate: r.Form.Get("start_date"),
+		EndDate:   r.Form.Get("end_date"),
+		LaptopID:  r.Form.Get("laptop_id"),
+	}
+
 	out, err := json.MarshalIndent(resp, "", "     ")
 	if err != nil {
 		helpers.ServerError(w, err)
@@ -138,6 +287,7 @@ func (repo *Repository) SearchAvailabilityModal(w http.ResponseWriter, r *http.R
 	w.Write(out)
 }
 
+// ReservationSummary displays the reservation summary page
 func (repo *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := repo.App.Session.Get(r.Context(), "reservation").(models.Reservation) // type assertion
 	if !ok {
@@ -147,10 +297,76 @@ func (repo *Repository) ReservationSummary(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = reservation.StartDate.Format("2006-01-02")
+	stringMap["end_date"] = reservation.EndDate.Format("2006-01-02")
+
 	repo.App.Session.Remove(r.Context(), "reservation")
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
-	render.RenderTemplate(w, r, "reservation-summary.page.html", &models.TemplateData{
-		Data: data,
+	render.Template(w, r, "reservation-summary.page.html", &models.TemplateData{
+		Data:      data,
+		StringMap: stringMap,
 	})
+}
+
+// ChooseLaptop displays list of available laptops
+func (repo *Repository) ChooseLaptop(w http.ResponseWriter, r *http.Request) {
+	laptopID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	res, ok := repo.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("cannot get item from session"))
+		return
+	}
+
+	res.LaptopID = laptopID
+	repo.App.Session.Put(r.Context(), "reservation", res)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+// RentLaptop takes URL parameters, builds a sessional variable, and takes user to make reservation page 
+func (repo *Repository) RentLaptop(w http.ResponseWriter, r *http.Request) {
+	LaptopID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	form := forms.New(r.Form)
+	startDate, err := form.GetTimeObj("s")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := form.GetTimeObj("e")
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	var res models.Reservation
+	res.LaptopID = LaptopID
+	res.StartDate = startDate
+	res.EndDate = endDate
+
+	laptop, err := repo.DB.GetLaptopByID(res.LaptopID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	res.Laptop.LaptopName = laptop.LaptopName
+
+	repo.App.Session.Put(r.Context(), "reservation", res)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }

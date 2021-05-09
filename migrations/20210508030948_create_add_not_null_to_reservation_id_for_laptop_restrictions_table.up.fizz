@@ -1,0 +1,1 @@
+change_column("laptop_restrictions", "reservation_id", "integer", {"null": true})

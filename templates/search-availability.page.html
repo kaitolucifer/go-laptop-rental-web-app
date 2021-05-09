@@ -12,10 +12,10 @@
                    <div class="col">
                        <div class="row" id="reservation-dates">
                            <div class="col">
-                               <input required type="text" class="form-control" name="start" autocomplete="off" placeholder="Start">
+                               <input required type="text" class="form-control" name="start_date" autocomplete="off" placeholder="Start">
                            </div>
                            <div class="col">
-                               <input required type="text" class="form-control" name="end" autocomplete="off" placeholder="End"> 
+                               <input required type="text" class="form-control" name="end_date" autocomplete="off" placeholder="End"> 
                            </div>
                        </div>
                    </div>
@@ -29,10 +29,13 @@
 
 {{define "js"}}
 <script>
-   // vanillajs-datepicker 
-   const elem = document.getElementById('reservation-dates');
-   const rangepicker = new DateRangePicker(elem, {
-            format: 'yyyy-mm-dd'
-   }); 
+    // vanillajs-datepicker 
+    const elem = document.getElementById('reservation-dates');
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const rangepicker = new DateRangePicker(elem, {
+            format: 'yyyy-mm-dd',
+            minDate: tomorrow,
+    }); 
 </script>
 {{end}}

@@ -23,6 +23,7 @@ A web application of laptop rental service using Go.
   - Uses the [chi router](https://github.com/go-chi/chi)
   - Uses alex edwards [SCS session management](https://github.com/alexedwards/scs)
   - Uses [nosurf](https://github.com/justinas/nosurf)
+  - Uses [govalidator](https://github.com/asaskevich/govalidator)
   - Uses [pop database toolkit](https://github.com/gobuffalo/pop)
 - HTML / CSS / JavaScript
   - Uses [Bootstrap 5](https://getbootstrap.jp/)

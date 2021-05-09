@@ -1,0 +1,18 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div class="container">
+   <div class="row">
+      <div class="col">
+          <h1 class="text-center mt-4">Choose a Laptop</h1>
+          {{$laptops := index .Data "laptops"}}
+
+          <ul>
+          {{range $laptops}}
+            <li><a href="choose-laptop/{{.ID}}">{{.LaptopName}}</a></li>
+          {{end}}
+        </ul>
+      </div>
+  </div>
+</div>
+{{end}}
