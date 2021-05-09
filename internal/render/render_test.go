@@ -13,7 +13,7 @@ func TestAddDefaultData(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	session.Put(r.Context(), "flash", "123")
+	testApp.Session.Put(r.Context(), "flash", "123")
 	result := AddDefaultData(&td, r)
 	if result.Flash != "123" {
 		t.Error("flash value not found in session")

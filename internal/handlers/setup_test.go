@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -21,37 +21,20 @@ import (
 var app config.AppConfig
 
 // tests is the test case for handlers
-var tests = []struct {
+var getTests = []struct {
 	name               string
 	path               string
-	method             string
-	data               url.Values
 	expectedStatusCode int
 }{
-	{"home", "/", "GET", url.Values{}, http.StatusOK},
-	{"about", "/about", "GET", url.Values{}, http.StatusOK},
-	{"alienware", "/alienware", "GET", url.Values{}, http.StatusOK},
-	{"macbook", "/macbook", "GET", url.Values{}, http.StatusOK},
-	{"search-availability", "/search-availability", "GET", url.Values{}, http.StatusOK},
-	{"contact", "/contact", "GET", url.Values{}, http.StatusOK},
-	{"make-reservation", "/make-reservation", "GET", url.Values{}, http.StatusOK},
-	{"post-search-availability", "/search-availability", "POST", url.Values{
-		"start": {"2020-01-01"},
-		"end":   {"2020-01-02"},
-	}, http.StatusOK},
-	{"post-search-availability-modal", "/search-availability-modal", "POST", url.Values{
-		"start": {"2020-01-01"},
-		"end":   {"2020-01-02"},
-	}, http.StatusOK},
-	{"post-make-reservation", "/make-reservation", "POST", url.Values{
-		"first_name": {"The"},
-		"last_name":  {"Test"},
-		"email":      {"test@test.com"},
-		"phone":      {"555-5555-5555"},
-	}, http.StatusOK},
+	{"home", "/", http.StatusOK},
+	{"about", "/about", http.StatusOK},
+	{"alienware", "/alienware", http.StatusOK},
+	{"macbook", "/macbook", http.StatusOK},
+	{"search-availability", "/search-availability", http.StatusOK},
+	{"contact", "/contact", http.StatusOK},
 }
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	gob.Register(models.Reservation{})
 
 	app.InProduction = false
@@ -72,9 +55,14 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true // if set to false, render.RenderTemplate will use wrong path for render.CreateTemplateCache
 
-	repo := NewRepo(&app)
+	repo := NewMockRepo(&app)
 	NewHandlers(repo)
 	render.NewRenderer(&app)
+
+	os.Exit(m.Run())
+}
+
+func getRoutes() http.Handler {
 	mux := chi.NewRouter()
 
 	// middleware
@@ -88,10 +76,7 @@ func getRoutes() http.Handler {
 	mux.Get("/alienware", Repo.Alienware)
 	mux.Get("/macbook", Repo.Macbook)
 	mux.Get("/search-availability", Repo.SearchAvailability)
-	mux.Post("/search-availability", Repo.PostSearchAvailability)
-	mux.Post("/search-availability-modal", Repo.SearchAvailabilityModal)
 	mux.Get("/make-reservation", Repo.MakeReservation)
-	mux.Post("/make-reservation", Repo.PostMakeReservation)
 	mux.Get("/reservation-summary", Repo.ReservationSummary)
 
 	// static files
@@ -104,7 +89,10 @@ func SessionLoad(next http.Handler) http.Handler {
 	return app.Session.LoadAndSave(next)
 }
 
-func TestMain(m *testing.M) {
-	fmt.Println("Start testing package: handlers")
-	os.Exit(m.Run())
+func getCtx(req *http.Request) context.Context {
+	ctx, err := app.Session.Load(req.Context(), req.Header.Get("X-Session"))
+	if err != nil {
+		log.Println(err)
+	}
+	return ctx
 }

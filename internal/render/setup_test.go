@@ -13,7 +13,6 @@ import (
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/models"
 )
 
-var session *scs.SessionManager
 var testApp config.AppConfig
 
 type testWriter struct{}
@@ -38,7 +37,7 @@ func getSession() (*http.Request, error) {
 	}
 
 	ctx := r.Context()
-	ctx, _ = session.Load(ctx, r.Header.Get("X-Session"))
+	ctx, _ = testApp.Session.Load(ctx, r.Header.Get("X-Session"))
 	r = r.WithContext(ctx)
 	return r, nil
 }
@@ -53,12 +52,11 @@ func TestMain(m *testing.M) {
 	testApp.InfoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	testApp.ErrorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	session = scs.New()
-	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = false
-	testApp.Session = session
+	testApp.Session = scs.New()
+	testApp.Session.Lifetime = 24 * time.Hour
+	testApp.Session.Cookie.Persist = true
+	testApp.Session.Cookie.SameSite = http.SameSiteLaxMode
+	testApp.Session.Cookie.Secure = false
 
 	app = &testApp
 
