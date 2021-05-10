@@ -28,6 +28,7 @@ A web application of laptop rental service using Go.
   - Uses [go-simple-mail](https://github.com/xhit/go-simple-mail) for sending Email
 - HTML / CSS / JavaScript
   - Uses [Bootstrap 5](https://getbootstrap.jp/)
+  - Uses [Foundation for Emails 2](https://get.foundation/emails.html)
   - Uses [vanillajs-datepicker](https://github.com/mymth/vanillajs-datepicker)
   - Uses the [notie notification suite](https://github.com/jaredreich/notie)
   - Uses the [sweetalert2 modal](https://sweetalert2.github.io/)
