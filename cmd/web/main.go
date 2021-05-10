@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -25,14 +24,17 @@ var app config.AppConfig
 
 // main is the main application function
 func main() {
-
 	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.SQL.Close()
 
-	fmt.Printf("Starting application on port %s\n", portNumber)
+	defer close(app.MailChan)
+	log.Println("Starting mail listener")
+	listenForMail()
+
+	log.Printf("Starting application on port %s\n", portNumber)
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -50,6 +52,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Laptop{})
 	gob.Register(models.LaptopRestrictions{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	// change this to true when in production
 	app.InProduction = false

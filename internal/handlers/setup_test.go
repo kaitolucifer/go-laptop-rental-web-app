@@ -48,6 +48,12 @@ func TestMain(m *testing.M) {
 	app.Session.Cookie.SameSite = http.SameSiteLaxMode
 	app.Session.Cookie.Secure = app.InProduction
 
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
+	defer close(mailChan)
+
+	listenForMail()
+
 	tc, err := render.CreateTemplateCache("./../../templates")
 	if err != nil {
 		log.Fatal(fmt.Sprintf("cannot create template cache: %s", err))
@@ -60,6 +66,14 @@ func TestMain(m *testing.M) {
 	render.NewRenderer(&app)
 
 	os.Exit(m.Run())
+}
+
+func listenForMail() {
+	go func() {
+		for {
+			<-app.MailChan
+		}
+	}()
 }
 
 func getRoutes() http.Handler {
