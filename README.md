@@ -25,6 +25,7 @@ A web application of laptop rental service using Go.
   - Uses [nosurf](https://github.com/justinas/nosurf)
   - Uses [govalidator](https://github.com/asaskevich/govalidator)
   - Uses [pop database toolkit](https://github.com/gobuffalo/pop)
+  - Uses [go-simple-mail](https://github.com/xhit/go-simple-mail) for sending Email
 - HTML / CSS / JavaScript
   - Uses [Bootstrap 5](https://getbootstrap.jp/)
   - Uses [vanillajs-datepicker](https://github.com/mymth/vanillajs-datepicker)

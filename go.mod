@@ -12,6 +12,6 @@ require (
 	github.com/justinas/nosurf v1.1.1
 	github.com/lib/pq v1.10.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/xhit/go-simple-mail/v2 v2.9.0 // indirect
+	github.com/xhit/go-simple-mail/v2 v2.9.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
