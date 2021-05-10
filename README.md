@@ -1,4 +1,4 @@
-# Go Web Application Template
+# Go Laptop Rental Service
 
 <pre>
             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
