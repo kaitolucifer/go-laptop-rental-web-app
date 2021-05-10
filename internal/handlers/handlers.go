@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -97,6 +98,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	reservation, ok := repo.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		repo.App.Session.Put(r.Context(), "error", "can't get reservation from session")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -104,6 +106,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	err := r.ParseForm()
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't parse form")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -120,12 +123,14 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	startDate, err := form.GetTimeObj("start_date")
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't get reservation from session")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	endDate, err := form.GetTimeObj("end_date")
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't parse start date")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -133,6 +138,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	laptopID, err := strconv.Atoi(r.Form.Get("laptop_id"))
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "invalid data")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -146,6 +152,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 		http.Error(w, "form invalid", http.StatusSeeOther)
+		r.Method = "GET"
 		render.Template(w, r, "make-reservation.page.html", &models.TemplateData{
 			Form: form,
 			Data: data,
@@ -156,6 +163,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	newReservationID, err := repo.DB.InsertReservation(reservation)
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't insert reservation into the database")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -165,13 +173,44 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 		EndDate:       endDate,
 		LaptopID:      laptopID,
 		ReservationID: newReservationID,
+		RestrictionID: 1,
 	}
 	err = repo.DB.InsertLaptopRestriction(restriction)
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't insert laptop restriction into the database")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	// send notification mail to user
+	htmlMessage := fmt.Sprintf(`
+	<strong>Reservation Confirmation</strong><br>
+	Dear %s:, <br>
+	This is a confirmation of your reservation from %s to %s.
+	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	mail := models.MailData{
+		To:      reservation.Email,
+		From:    "kaito@laptop-rental.com",
+		Subject: "Reservation Confirmation",
+		Content: htmlMessage,
+		Template: "basic.email.html",
+	}
+	repo.App.MailChan <- mail
+
+	// send notification mail to website Administrator
+	htmlMessage = fmt.Sprintf(`
+	<strong>Reservation Confirmation</strong><br>
+	A reservation has been made for %s from %s to %s.
+	`, reservation.Laptop.LaptopName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	mail = models.MailData{
+		To:      "kaito@laptop-rental.com",
+		From:    "kaito@laptop-rental.com",
+		Subject: "Reservation Confirmation",
+		Content: htmlMessage,
+		Template: "basic.email.html",
+	}
+	repo.App.MailChan <- mail
 
 	repo.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
@@ -197,6 +236,7 @@ func (repo *Repository) PostSearchAvailability(w http.ResponseWriter, r *http.Re
 	err := r.ParseForm()
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't parse form")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -206,12 +246,14 @@ func (repo *Repository) PostSearchAvailability(w http.ResponseWriter, r *http.Re
 	startDate, err := form.GetTimeObj("start_date")
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't parse start date")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	endDate, err := form.GetTimeObj("end_date")
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't parse end date")
+		r.Method = "GET"
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -219,12 +261,14 @@ func (repo *Repository) PostSearchAvailability(w http.ResponseWriter, r *http.Re
 	laptops, err := repo.DB.SearchAvailabilityForAllLaptops(startDate, endDate)
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't search availability")
-		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		r.Method = "GET"
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	if len(laptops) == 0 {
 		repo.App.Session.Put(r.Context(), "error", "no availability")
+		r.Method = "GET"
 		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
 		return
 	}
