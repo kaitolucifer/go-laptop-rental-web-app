@@ -28,7 +28,7 @@ type Repository struct {
 func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
-		DB:  database.NewPostgres(db.SQL, a),
+		DB:  database.NewPostgres(db.Conn, a),
 	}
 }
 
@@ -160,7 +160,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	newReservationID, err := repo.DB.InsertReservation(reservation)
+	newReservationID, err := repo.DB.InsertReservation(&reservation)
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't insert reservation into the database")
 		r.Method = "GET"
@@ -175,7 +175,7 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 		ReservationID: newReservationID,
 		RestrictionID: 1,
 	}
-	err = repo.DB.InsertLaptopRestriction(restriction)
+	err = repo.DB.InsertLaptopRestriction(&restriction)
 	if err != nil {
 		repo.App.Session.Put(r.Context(), "error", "can't insert laptop restriction into the database")
 		r.Method = "GET"
@@ -190,10 +190,10 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	This is a confirmation of your reservation from %s to %s.
 	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
 	mail := models.MailData{
-		To:      reservation.Email,
-		From:    "kaito@laptop-rental.com",
-		Subject: "Reservation Confirmation",
-		Content: htmlMessage,
+		To:       reservation.Email,
+		From:     "kaito@laptop-rental.com",
+		Subject:  "Reservation Confirmation",
+		Content:  htmlMessage,
 		Template: "basic.email.html",
 	}
 	repo.App.MailChan <- mail
@@ -204,10 +204,10 @@ func (repo *Repository) PostMakeReservation(w http.ResponseWriter, r *http.Reque
 	A reservation has been made for %s from %s to %s.
 	`, reservation.Laptop.LaptopName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
 	mail = models.MailData{
-		To:      "kaito@laptop-rental.com",
-		From:    "kaito@laptop-rental.com",
-		Subject: "Reservation Confirmation",
-		Content: htmlMessage,
+		To:       "kaito@laptop-rental.com",
+		From:     "kaito@laptop-rental.com",
+		Subject:  "Reservation Confirmation",
+		Content:  htmlMessage,
 		Template: "basic.email.html",
 	}
 	repo.App.MailChan <- mail
@@ -469,4 +469,62 @@ func (repo *Repository) RentLaptop(w http.ResponseWriter, r *http.Request) {
 
 	repo.App.Session.Put(r.Context(), "reservation", res)
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+// Login shows the login page
+func (repo *Repository) Login(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "login.page.html", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+// PostLogin handles logging the user in 
+func (repo *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
+	_ = repo.App.Session.RenewToken(r.Context()) // to prevent session fixation attack
+
+	err := r.ParseForm()
+	if err != nil {
+		repo.App.Session.Put(r.Context(), "error", "can't parse form")
+		r.Method = "GET"
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	form.IsEmail("email")
+	if !form.Valid() {
+		render.Template(w, r, "login.page.html", &models.TemplateData{
+			Form: form,
+		})
+		return 
+	}
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	id, _, err := repo.DB.Authenticate(email, password)
+	if err != nil {
+		repo.App.Session.Put(r.Context(), "error", "invalid login credentials")
+		r.Method = "GET"
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	repo.App.Session.Put(r.Context(), "user_id", id)
+	repo.App.Session.Put(r.Context(), "flash", "Logged in successfully")
+	r.Method = "GET"
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// Logout logs a user out
+func (repo *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = repo.App.Session.Destroy(r.Context())
+	_ = repo.App.Session.RenewToken(r.Context())
+	repo.App.Session.Put(r.Context(), "flash", "Logged out successfully")
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (repo *Repository) AdminDashbord(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "admin-dashboard.page.html", &models.TemplateData{})
 }

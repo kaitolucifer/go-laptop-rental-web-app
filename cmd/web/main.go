@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.SQL.Close()
+	defer db.Conn.Close()
 
 	defer close(app.MailChan)
 	log.Println("Starting mail listener")

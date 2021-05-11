@@ -12,7 +12,7 @@ func (p *mockPostgres) AllUsers() bool {
 }
 
 // InsertReservation inserts a reservation into the database
-func (p *mockPostgres) InsertReservation(res models.Reservation) (int, error) {
+func (p *mockPostgres) InsertReservation(res *models.Reservation) (int, error) {
 	// if the first name is Test, then failed
 	if res.FirstName == "Test" {
 		return 0, errors.New("error")
@@ -21,7 +21,7 @@ func (p *mockPostgres) InsertReservation(res models.Reservation) (int, error) {
 }
 
 // InsertLaptopRestriction inserts a laptop restriction into the database
-func (p *mockPostgres) InsertLaptopRestriction(lr models.LaptopRestrictions) error {
+func (p *mockPostgres) InsertLaptopRestriction(lr *models.LaptopRestrictions) error {
 	if lr.LaptopID == 1000 {
 		return errors.New("error")
 	}
@@ -66,4 +66,18 @@ func (p *mockPostgres) GetLaptopByID(id int) (models.Laptop, error) {
 	}
 
 	return laptop, nil
+}
+
+// GetUserByID returns a user by id
+func (p *mockPostgres) GetUserByID(id int) (models.User, error) {
+	var u models.User
+	return u, nil
+}
+
+func (p *mockPostgres) UpdateUser(u *models.User) error {
+	return nil
+}
+
+func (p *mockPostgres) Authenticate(email, password string) (int, string, error) {
+	return 0, "", nil
 }

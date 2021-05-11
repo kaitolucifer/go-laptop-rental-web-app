@@ -2,9 +2,11 @@ package database
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (p *postgres) AllUsers() bool {
@@ -12,7 +14,7 @@ func (p *postgres) AllUsers() bool {
 }
 
 // InsertReservation inserts a reservation into the database
-func (p *postgres) InsertReservation(res models.Reservation) (int, error) {
+func (p *postgres) InsertReservation(res *models.Reservation) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -43,7 +45,7 @@ func (p *postgres) InsertReservation(res models.Reservation) (int, error) {
 }
 
 // InsertLaptopRestriction inserts a laptop restriction into the database
-func (p *postgres) InsertLaptopRestriction(lr models.LaptopRestrictions) error {
+func (p *postgres) InsertLaptopRestriction(lr *models.LaptopRestrictions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -146,4 +148,75 @@ func (p *postgres) GetLaptopByID(id int) (models.Laptop, error) {
 	}
 
 	return laptop, nil
+}
+
+// GetUserByID returns a user by id
+func (p *postgres) GetUserByID(id int) (models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT id, first_name, last_name, email, password, access_level, created_at, updated_at
+			  FROM users WHERE id = $1`
+	row := p.DB.QueryRowContext(ctx, query, id)
+
+	var u models.User
+	err := row.Scan(
+		&u.ID,
+		&u.FirstName,
+		&u.LastName,
+		&u.Email,
+		&u.Password,
+		&u.AccessLevel,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	)
+	if err != nil {
+		return u, err
+	}
+
+	return u, nil
+}
+
+// UpdateUser updates a user in the database
+func (p *postgres) UpdateUser(u *models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `Update users set first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5`
+
+	_, err := p.DB.ExecContext(ctx, query,
+		u.FirstName,
+		u.LastName,
+		u.Email,
+		u.AccessLevel,
+		time.Now(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Authenticate authenticates a user
+func (p *postgres) Authenticate(email, password string) (int, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var id int
+	var hashedPassword string
+	row := p.DB.QueryRowContext(ctx, "SELECT id, password FROM users WHERE email = $1", email)
+	err := row.Scan(&id, &hashedPassword)
+	if err != nil {
+		return id, "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return 0, "", errors.New("incorrect password")
+	} else if err != nil {
+		return 0, "", err
+	}
+
+	return id, hashedPassword, nil
 }
