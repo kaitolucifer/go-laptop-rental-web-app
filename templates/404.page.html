@@ -1,0 +1,12 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div class="container">
+   <div class="row">
+      <div class="col">
+         <h1>Not Found</h1>
+         <p>The requested URL {{index .StringMap "url"}} was not found on this server</p>
+      </div>
+   </div>
+</div>
+{{end}}
