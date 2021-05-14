@@ -1,0 +1,21 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 261519
+      POSTGRES_USER: postgres
+      POSTGRES_DB: laptop_rental_app
+    volumes:
+      - pgdata:/var/lib/postgresql/data # postgresqlのデータ領域である/var/lib/postgresql/dataのディレクトリにマウント
+    ports:
+      - 5432:5432
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  pgdata: # データ永続化のため、pgdatavolというvolumeを作成
