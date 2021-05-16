@@ -45,10 +45,11 @@ type Reservation struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Laptop    Laptop
+	Processed int
 }
 
 // LaptopRestriction is the laptop restriction model
-type LaptopRestrictions struct {
+type LaptopRestriction struct {
 	ID            int
 	StartDate     time.Time
 	EndDate       time.Time
@@ -64,9 +65,9 @@ type LaptopRestrictions struct {
 
 // MailData holds an email message
 type MailData struct {
-	To      string
-	From    string
-	Subject string
-	Content string
+	To       string
+	From     string
+	Subject  string
+	Content  string
 	Template string
 }

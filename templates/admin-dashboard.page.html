@@ -1,14 +1,11 @@
-{{template "base" .}}
+{{template "admin" .}}
+
+{{define "page-title"}}
+    Dashboard
+{{end}}
 
 {{define "content"}}
-<div class="container">
-   <div class="row">
-      <div class="col">
-          <h1 class="text-center mt-4">Admin Dashboard</h1>
-          <p>
-              This page is secure.
-          </p>
-      </div>
-  </div>
-</div>
+    <div class="col-md-12">
+        Dashboard content
+    </div>
 {{end}}

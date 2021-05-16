@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -74,8 +75,8 @@ func TestRepository_MakeReservation(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("MakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("MakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: non-existent laptop id
@@ -87,8 +88,8 @@ func TestRepository_MakeReservation(t *testing.T) {
 	reservation.LaptopID = 100
 	app.Session.Put(ctx, "reservation", reservation)
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("MakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("MakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 }
 
@@ -132,8 +133,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: no request body
@@ -146,8 +147,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid start date
@@ -168,8 +169,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid end date
@@ -190,8 +191,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid laptop id
@@ -212,8 +213,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid form data
@@ -256,8 +257,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: failure insert restriction into the database
@@ -278,8 +279,8 @@ func TestRepository_PostMakeReservation(t *testing.T) {
 	app.Session.Put(ctx, "reservation", reservation)
 
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostMakeReservation handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 }
 
@@ -335,8 +336,8 @@ func TestRepository_PostSearchAvailability(t *testing.T) {
 	rr = httptest.NewRecorder()
 	handler = http.HandlerFunc(Repo.PostSearchAvailability)
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid start date
@@ -349,8 +350,8 @@ func TestRepository_PostSearchAvailability(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid end date
@@ -363,8 +364,8 @@ func TestRepository_PostSearchAvailability(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostSearchAvailability handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 }
 
@@ -538,7 +539,7 @@ func TestRepository_ReservationSummary(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
+	if rr.Code != http.StatusSeeOther {
 		t.Errorf("ReservationSummary handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusOK)
 	}
 }
@@ -581,8 +582,8 @@ func TestRepository_ChooseLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("ChooseLaptop handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("ChooseLaptop handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: missing url parameter, or malformed parameter
@@ -597,8 +598,8 @@ func TestRepository_ChooseLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("ChooseLaptop handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("ChooseLaptop handler returned wrong response code: got: %d, expected: %d", rr.Code, http.StatusSeeOther)
 	}
 }
 
@@ -637,8 +638,8 @@ func TestRepository_RentLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid laptop id
@@ -652,8 +653,8 @@ func TestRepository_RentLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid start date
@@ -667,8 +668,8 @@ func TestRepository_RentLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusSeeOther)
 	}
 
 	// test case: invalid end date
@@ -682,7 +683,168 @@ func TestRepository_RentLaptop(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusTemporaryRedirect)
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("RentLaptop handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusSeeOther)
+	}
+}
+
+func TestLogin(t *testing.T) {
+	for _, test := range loginTests {
+		postedData := url.Values{}
+		postedData.Add("email", test.email)
+		postedData.Add("password", "password")
+
+		req, _ := http.NewRequest("POST", "/user/login", strings.NewReader(postedData.Encode()))
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.PostLogin)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != test.expectedStatusCode {
+			t.Errorf("PostLogin handler returned wrong response code: got: %d, expected %d", rr.Code, http.StatusSeeOther)
+		}
+
+		if test.expectedLocation != "" {
+			actualLoc, _ := rr.Result().Location()
+			if actualLoc.String() != test.expectedLocation {
+				t.Errorf("PostLogin handler redirect to wrong location: got: %s, expected %s", actualLoc.String(), test.expectedLocation)
+			}
+		}
+
+		if test.expectedHTML != "" {
+			html := rr.Body.String()
+			if !strings.Contains(html, test.expectedHTML) {
+				t.Errorf("PostLogin handler returned wrong html: expected %s contained", test.expectedHTML)
+			}
+		}
+	}
+}
+
+func TestAdminDeleteReservation(t *testing.T) {
+	for _, test := range adminDeleteReservationTests {
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/admin/process-reservation/calendar/1/do%s", test.queryParams), nil)
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+		req.RequestURI = fmt.Sprintf("/admin/process-reservation/calendar/1/do%s", test.queryParams)
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.AdminDeleteReservation)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusSeeOther {
+			t.Errorf("failed %s: expected code %d, but got %d", test.name, test.expectedResponseCode, rr.Code)
+		}
+	}
+}
+
+func TestAdminProcessReservation(t *testing.T) {
+	for _, test := range adminProcessReservationTests {
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/admin/process-reservation/calendar/1/do%s", test.queryParams), nil)
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+
+		req.RequestURI = fmt.Sprintf("/admin/process-reservation/calendar/1/do%s", test.queryParams)
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.AdminProcessReservation)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusSeeOther {
+			t.Errorf("failed %s: expected code %d, but got %d", test.name, test.expectedResponseCode, rr.Code)
+		}
+	}
+}
+
+func TestPostAdminReservationCalendar(t *testing.T) {
+	for _, e := range postAdminReservationCalendarTests {
+		var req *http.Request
+		if e.postedData != nil {
+			req, _ = http.NewRequest("POST", "/admin/reservations-calendar", strings.NewReader(e.postedData.Encode()))
+		} else {
+			req, _ = http.NewRequest("POST", "/admin/reservations-calendar", nil)
+		}
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+
+		now := time.Now()
+		bm := make(map[string]int)
+		rm := make(map[string]int)
+
+		currentYear, currentMonth, _ := now.Date()
+		currentLocation := now.Location()
+
+		firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+		lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+
+		for d := firstOfMonth; d.After(lastOfMonth) == false; d = d.AddDate(0, 0, 1) {
+			rm[d.Format("2006-01-2")] = 0
+			bm[d.Format("2006-01-2")] = 0
+		}
+
+		if e.blocks > 0 {
+			bm[firstOfMonth.Format("2006-01-2")] = e.blocks
+		}
+
+		if e.reservations > 0 {
+			rm[lastOfMonth.Format("2006-01-2")] = e.reservations
+		}
+
+		app.Session.Put(ctx, "block_map_1", bm)
+		app.Session.Put(ctx, "reservation_map_1", rm)
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.PostAdminReservationsCalendar)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != e.expectedResponseCode {
+			t.Errorf("failed %s: expected code %d, but got %d", e.name, e.expectedResponseCode, rr.Code)
+		}
+
+	}
+}
+
+func TestAdminPostShowReservation(t *testing.T) {
+	for _, test := range PostAdminShowReservationTests {
+		var req *http.Request
+		if test.postedData != nil {
+			req, _ = http.NewRequest("POST", "/user/login", strings.NewReader(test.postedData.Encode()))
+		} else {
+			req, _ = http.NewRequest("POST", "/user/login", nil)
+		}
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+		req.RequestURI = test.url
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.PostAdminShowReservation)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != test.expectedResponseCode {
+			t.Errorf("failed %s: expected code %d, but got %d", test.name, test.expectedResponseCode, rr.Code)
+		}
+
+		if test.expectedLocation != "" {
+			actualLoc, _ := rr.Result().Location()
+			if actualLoc.String() != test.expectedLocation {
+				t.Errorf("failed %s: expected location %s, but got location %s", test.name, test.expectedLocation, actualLoc.String())
+			}
+		}
+
+		if test.expectedHTML != "" {
+			html := rr.Body.String()
+			if !strings.Contains(html, test.expectedHTML) {
+				t.Errorf("failed %s: expected to find %s but did not", test.name, test.expectedHTML)
+			}
+		}
 	}
 }

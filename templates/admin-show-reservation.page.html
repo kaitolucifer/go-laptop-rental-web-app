@@ -1,0 +1,117 @@
+{{template "admin" .}}
+
+{{define "page-title"}}
+    Reservation
+{{end}}
+
+{{define "content"}}
+    {{$res := index .Data "reservation"}}
+    {{$type := index .StringMap "type"}}
+    {{$processd := $res.Processed}}
+    <div class="col-md-12">
+        <p>
+            <strong>Start Date</strong> : {{ymdDate $res.StartDate}}<br>
+            <strong>End Date</strong> : {{ymdDate $res.EndDate}}<br>
+            <strong>Laptop Name</strong> : {{$res.Laptop.LaptopName}}<br>
+        </p>
+        <form method="POST" action="/admin/reservations/{{$type}}/{{$res.ID}}" novalidate>
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <input type="hidden" name="year" value="{{index .StringMap "year"}}">
+            <input type="hidden" name="month" value="{{index .StringMap "month"}}">
+            <div class="form-group mt-3">
+                <label class="form-label" for="first_name">First name:</label>
+                <input type="text" name="first_name" aria-describedby="validationFirstName"
+                       id="first_name" class="form-control {{with .Form.Errors.Get "first_name"}} is-invalid {{end}}"
+                       autocomplete="off" value="{{$res.FirstName}}" required>
+                {{with .Form.Errors.Get "first_name"}}
+                    <div id="validationFirstName" class="invalid-feedback">
+                        {{.}}
+                    </div>
+                {{end}}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="last_name">Last name:</label>
+                <input type="text" name="last_name" aria-describedby="validationLastName"
+                       id="last_name" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}}"
+                       autocomplete="off" value="{{$res.LastName}}" required>
+                {{with .Form.Errors.Get "last_name"}}
+                    <div id="validationLastName" class="invalid-feedback">
+                        {{.}}
+                    </div>
+                {{end}}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Email:</label>
+                <input type="text" name="email" aria-describedby="validationEmail"
+                       id="email" class="form-control {{with .Form.Errors.Get "email"}} is-invalid {{end}}"
+                       autocomplete="off" value="{{$res.Email}}" required>
+                {{with .Form.Errors.Get "email"}}
+                    <div id="validationEmail" class="invalid-feedback">
+                        {{.}}
+                    </div>
+                {{end}}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone number:</label>
+                <input type="text" name="phone" aria-describedby="validationPhone"
+                       id="phone" class="form-control {{with .Form.Errors.Get "phone"}} is-invalid {{end}}"
+                       autocomplete="off" value="{{$res.Phone}}" required>
+                {{with .Form.Errors.Get "phone"}}
+                    <div id="validationPhone" class="invalid-feedback">
+                        {{.}}
+                    </div>
+                {{end}}
+            </div>
+
+            <div class="float-left">
+                <input type="submit" class="btn btn-primary" value="Save">
+                {{if eq $type "calendar"}}
+                <a href="#!" onclick="window.history.go(-1)" class="btn btn-warning">Cancel</a>
+                {{else}}
+                <a href="/admin/reservations-{{$type}}" class="btn btn-warning">Cancel</a>
+                {{end}}
+                {{if eq $processd 0}}
+                <a href="#1" class="btn btn-info" onclick="markProcessed({{$res.ID}})">Mark as processed</a>
+                {{end}}
+            </div>
+
+            <div class="float-right">
+                <a href="#1" class="btn btn-danger" onclick="deleteRes({{$res.ID}})">Delete</a>
+            </div>
+
+        </form>
+    </div>
+{{end}}
+
+{{define "js"}}
+{{$type := index .StringMap "type"}}
+<script>
+    function markProcessed(id) {
+        attention.custom({
+            icon: 'warning',
+            msg: 'Are you sure?',
+            callback: function(result) {
+                if (result !== false) {
+                    window.location.href = '/admin/process-reservation/{{$type}}/'
+                    + id
+                    + "/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
+                }
+            },
+        })
+    }
+
+    function deleteRes(id) {
+        attention.custom({
+            icon: 'warning',
+            msg: 'Are you sure?',
+            callback: function(result) {
+                if (result !== false) {
+                    window.location.href = '/admin/delete-reservation/{{$type}}/'
+                    + id
+                    + "/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
+                }
+            },
+        })
+    }
+</script>
+{{end}}

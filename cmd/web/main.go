@@ -2,12 +2,15 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/joho/godotenv"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/config"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/driver"
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/handlers"
@@ -19,11 +22,29 @@ import (
 // portNumber is the server port number to use
 const portNumber = ":8080"
 
+// read flags
+var (
+	inProduction                                      = flag.Bool("production", true, "Application is in production")
+	useCache                                          = flag.Bool("cache", true, "Use template cache")
+	dbHost, dbName, dbUser, dbPassword, dbPort, dbSSL string
+)
+
 // app contains all app config
 var app config.AppConfig
 
 // main is the main application function
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	dbHost = os.Getenv("dbhost")
+	dbName = os.Getenv("dbname")
+	dbUser = os.Getenv("dbuser")
+	dbPassword = os.Getenv("dbpassword")
+	dbPort = os.Getenv("dbport")
+	dbSSL = os.Getenv("dbssl") // (disbale, prefer, require)
+
 	db, err := run()
 	if err != nil {
 		log.Fatal(err)
@@ -51,13 +72,20 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Restriction{})
 	gob.Register(models.User{})
 	gob.Register(models.Laptop{})
-	gob.Register(models.LaptopRestrictions{})
+	gob.Register(models.LaptopRestriction{})
+	gob.Register(map[string]int{})
+
+	flag.Parse()
+
+	if dbName == "" || dbUser == "" {
+		log.Fatal("Missing required flags")
+		os.Exit(1)
+	}
 
 	mailChan := make(chan models.MailData)
 	app.MailChan = mailChan
 
-	// change this to true when in production
-	app.InProduction = false
+	app.InProduction = *inProduction
 
 	app.InfoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.ErrorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -70,7 +98,8 @@ func run() (*driver.DB, error) {
 
 	// connect to database
 	app.InfoLog.Println("Connecting to database...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=laptop_rental_app user=postgres password=261519")
+	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", dbHost, dbPort, dbName, dbUser, dbPassword, dbSSL)
+	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Printf("Cannot connect to database: %s\n", err)
 		return nil, err
@@ -83,7 +112,7 @@ func run() (*driver.DB, error) {
 		return db, err
 	}
 	app.TemplateCache = tc
-	app.UseCache = false
+	app.UseCache = *useCache
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)

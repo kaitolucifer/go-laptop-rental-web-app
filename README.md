@@ -26,9 +26,12 @@ A web application of laptop rental service using Go.
   - Uses [govalidator](https://github.com/asaskevich/govalidator)
   - Uses [pop database toolkit](https://github.com/gobuffalo/pop)
   - Uses [go-simple-mail](https://github.com/xhit/go-simple-mail) for sending Email
+  - Uses [GoDotEnv](https://github.com/joho/godotenv)
 - HTML / CSS / JavaScript
   - Uses [Bootstrap 5](https://getbootstrap.jp/)
+  - Uses [RoyalUI-Free-Bootstrap-Admin-Template](https://github.com/BootstrapDash/RoyalUI-Free-Bootstrap-Admin-Template)
   - Uses [Foundation for Emails 2](https://get.foundation/emails.html)
   - Uses [vanillajs-datepicker](https://github.com/mymth/vanillajs-datepicker)
   - Uses the [notie notification suite](https://github.com/jaredreich/notie)
   - Uses the [sweetalert2 modal](https://sweetalert2.github.io/)
+  - Uses [Simple-DataTables](https://github.com/fiduswriter/Simple-DataTables)

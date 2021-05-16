@@ -21,7 +21,7 @@ func (p *mockPostgres) InsertReservation(res *models.Reservation) (int, error) {
 }
 
 // InsertLaptopRestriction inserts a laptop restriction into the database
-func (p *mockPostgres) InsertLaptopRestriction(lr *models.LaptopRestrictions) error {
+func (p *mockPostgres) InsertLaptopRestriction(lr *models.LaptopRestriction) error {
 	if lr.LaptopID == 1000 {
 		return errors.New("error")
 	}
@@ -79,5 +79,69 @@ func (p *mockPostgres) UpdateUser(u *models.User) error {
 }
 
 func (p *mockPostgres) Authenticate(email, password string) (int, string, error) {
-	return 0, "", nil
+	if email == "failed@test.com" {
+		return 0, "", errors.New("invalid")
+	}
+	return 1, "", nil
+}
+
+// AllReservations returns a slice of all reservations
+func (p *mockPostgres) AllReservations() ([]models.Reservation, error) {
+	var reservations []models.Reservation
+
+	return reservations, nil
+}
+
+// AllNewReservations returns a slice of all new reservations
+func (p *mockPostgres) AllNewReservations() ([]models.Reservation, error) {
+	var reservations []models.Reservation
+
+	return reservations, nil
+}
+
+// GetReservatioByID returns one reservation by id
+func (p *mockPostgres) GetReservatioByID(id int) (models.Reservation, error) {
+	var res models.Reservation
+
+	return res, nil
+}
+
+// UpdateReservation updates a reservation in the database
+func (p *mockPostgres) UpdateReservation(res *models.Reservation) error {
+	return nil
+}
+
+// DeleteReservation deletes one reservation by id
+func (p *mockPostgres) DeleteReservation(id int) error {
+	return nil
+}
+
+// UpdateReservationProcessed updates a reservation processed status by id
+func (p *mockPostgres) UpdateReservationProcessed(id, processed int) error {
+	return nil
+}
+
+// AllLaptops returns all laptops
+func (p *mockPostgres) AllLaptops() ([]models.Laptop, error) {
+	var laptops []models.Laptop
+
+	return laptops, nil
+}
+
+// GetLaptopRestrictionsByDate returns restrictions for a laptop by date range
+func (p *mockPostgres) GetLaptopRestrictionsByDate(laptopID int, start, end time.Time) ([]models.LaptopRestriction, error) {
+
+	var restrictions []models.LaptopRestriction
+
+	return restrictions, nil
+}
+
+// InsertOneDayBlockByLaptopID inserts a one day block restriction by laptop id
+func (p *mockPostgres) InsertOneDayBlockByLaptopID(id int, startDate time.Time) error {
+	return nil
+}
+
+// DeleteBlockByLaptopID deletes a laptop restriction by id
+func (p *mockPostgres) DeleteBlockByID(id int) error {
+	return nil
 }
