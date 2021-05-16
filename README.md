@@ -35,3 +35,13 @@ A web application of laptop rental service using Go.
   - Uses the [notie notification suite](https://github.com/jaredreich/notie)
   - Uses the [sweetalert2 modal](https://sweetalert2.github.io/)
   - Uses [Simple-DataTables](https://github.com/fiduswriter/Simple-DataTables)
+
+### Screeshots
+- Home Page
+![home](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/home.png)
+
+- Reservation
+![reservation](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/reservation.png)
+
+- Admin page
+![admin](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/admin.png)
