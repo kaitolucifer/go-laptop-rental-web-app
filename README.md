@@ -37,11 +37,19 @@ A web application of laptop rental service using Go.
   - Uses [Simple-DataTables](https://github.com/fiduswriter/Simple-DataTables)
 
 ### Screeshots
+
 - Home Page
-![home](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/home.png)
+  ![home](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/home.png)
 
 - Reservation
-![reservation](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/reservation.png)
+  ![reservation](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/reservation.png)
 
 - Admin page
-![admin](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/admin.png)
+  ![admin](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/admin.png)
+
+### Installation
+
+- `go get` to download all modules
+- `cd dockerfile && docker-compose up -d` to start postgresql and mailhog service
+- fill `database.yml` and `.env` with information in `dockerfile/docker-compose.yml`
+- `chmod +x run.sh && ./run.sh` to run server
