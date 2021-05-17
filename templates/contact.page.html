@@ -1,10 +1,35 @@
 {{template "base" .}}
 
+{{define "css"}}
+<style>
+.my-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 101%;
+  margin-top: 2em;
+  padding: 1em;
+  color: #ffffff;
+  font-size: 80%;
+}
+</style>
+{{end}}
+
 {{define "content"}}
 <div class="container">
    <div class="row">
       <div class="col">
-         <h1>This is the contact page</h1>
+         <h1 class="text-center mt-4">Contact</h1>
+         <div class="row mt-5">
+            <div class="col">
+               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d207446.24819531705!2d139.60078370570872!3d35.66844146237872!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188b857628235d%3A0xcdd8aef709a2b520!2z5p2x5Lqs6YO95p2x5Lqs!5e0!3m2!1sja!2sjp!4v1621249333610!5m2!1sja!2sjp" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+            <div class="col">
+               <p>This is a demo application.</p>
+               <p>Phone number in the footer is a fake one.</p>
+               <p>But I actually live in Tokyo Japan.</p>
+            </div>
+         </div>
       </div>
    </div>
 </div>

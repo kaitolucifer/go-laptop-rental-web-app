@@ -1,31 +1,30 @@
 .my-footer {
-    height: 4em;
-    margin-top: 2em;
-    padding: 1em;
-    color: #ffffff;
-    font-size: 80%;
+  margin-top: 2em;
+  padding: 1em;
+  color: #ffffff;
+  font-size: 80%;
 }
 
 .laptop-image {
-    max-width: 80%;
+  max-width: 80%;
 }
 
 .home-image {
-    float: left;
-    width:  900px;
-    height: 600px;
-    object-fit: cover;
+  float: left;
+  width: 900px;
+  height: 600px;
+  object-fit: cover;
 }
 
 .notie-container {
-box-shadow: none;
+  box-shadow: none;
 }
 
 .datepicker {
-    z-index: 10000;
+  z-index: 10000;
 }
 
 .inactive-link {
-    pointer-events: none;
-    cursor: default;
- }
+  pointer-events: none;
+  cursor: default;
+}

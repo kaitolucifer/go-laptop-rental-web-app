@@ -1,10 +1,25 @@
 {{template "base" .}}
 
+{{define "css"}}
+<style>
+.my-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 101%;
+  margin-top: 2em;
+  padding: 1em;
+  color: #ffffff;
+  font-size: 80%;
+}
+</style>
+{{end}}
+
 {{define "content"}}
 <div class="container">
    <div class="row">
-      <div class="col">
-          <h1>Login</h1>
+      <div class="col-md-4 offset-4">
+          <h1 class="text-center mt-4">Login</h1>
           <form method="POST" action="/user/login" novalidate>
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-group mt-3">
