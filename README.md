@@ -52,4 +52,9 @@ A web application of laptop rental service using Go.
 - `go get` to download all modules
 - `cd dockerfile && docker-compose up -d` to start postgresql and mailhog service
 - fill `database.yml` and `.env` with information in `dockerfile/docker-compose.yml`
+- install [pop database toolkit](https://github.com/gobuffalo/pop)
+- `soda migrate` to migrate database
 - `chmod +x run.sh && ./run.sh` to run server
+- default admin email and password
+  - email: `admin@admin.com`
+  - password: `password`
