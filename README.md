@@ -44,7 +44,7 @@ A web application of laptop rental service using Go.
 - Reservation
   ![reservation](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/reservation.png)
 
-- Admin page
+- Admin Page
   ![admin](https://github.com/kaitolucifer/go-laptop-rental-web-app/blob/main/demo/admin.png)
 
 ### Installation
