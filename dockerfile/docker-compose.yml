@@ -18,4 +18,4 @@ services:
       - "1025:1025"
 
 volumes:
-  pgdata: # データ永続化のため、pgdatavolというvolumeを作成
+  pgdata: # データ永続化のため、pgdataというvolumeを作成
