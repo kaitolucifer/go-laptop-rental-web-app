@@ -6,7 +6,7 @@ import (
 	"github.com/kaitolucifer/go-laptop-rental-site/internal/models"
 )
 
-type Database interface {
+type DBRepository interface {
 	AllUsers() bool
 
 	InsertReservation(res *models.Reservation) (int, error)

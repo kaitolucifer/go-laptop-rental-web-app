@@ -23,7 +23,7 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
-	DB  database.Database
+	DB  database.DBRepository
 }
 
 // NewRepo creates a new repository
