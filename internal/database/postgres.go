@@ -182,7 +182,7 @@ func (p *postgres) UpdateUser(u *models.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := `Update users SET first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5`
+	query := `UPDATE users SET first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5`
 
 	_, err := p.DB.ExecContext(ctx, query,
 		u.FirstName,
@@ -364,7 +364,7 @@ func (p *postgres) UpdateReservation(res *models.Reservation) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := `Update reservations SET first_name = $1, last_name = $2, email = $3, phone = $4, updated_at = $5
+	query := `UPDATE reservations SET first_name = $1, last_name = $2, email = $3, phone = $4, updated_at = $5
 			  WHERE id = $6`
 
 	_, err := p.DB.ExecContext(ctx, query,
@@ -401,7 +401,7 @@ func (p *postgres) UpdateReservationProcessed(id, processed int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := `Update reservations SET processed = $2
+	query := `UPDATE reservations SET processed = $2
 			  WHERE id = $1`
 
 	_, err := p.DB.ExecContext(ctx, query, id, processed)
