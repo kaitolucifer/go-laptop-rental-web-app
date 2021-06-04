@@ -4,6 +4,5 @@ coverage.out
 app
 database.yml
 soda_command.txt
-go.sum
 *_docker.sh
 .env
